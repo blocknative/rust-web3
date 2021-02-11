@@ -133,6 +133,24 @@ impl<T: DuplexTransport> EthSubscribe<T> {
         SubscriptionStream::new(self.transport.clone(), SubscriptionId(id))
     }
 
+    /// Create a dropped transaction subscription
+    /// Needs the BlockNative exclusive Geth fork
+    pub async fn subscribe_dropped_transactions(&self) -> error::Result<SubscriptionStream<T, H256>> {
+        let subscription = helpers::serialize(&&"droppedTransactions");
+        let response = self.transport.execute("eth_subscribe", vec![subscription]).await?;
+        let id: String = helpers::decode(response)?;
+        SubscriptionStream::new(self.transport.clone(), SubscriptionId(id))
+    }
+
+    /// Create a rejected transaction subscription
+    /// Needs the BlockNative exclusive Geth fork
+    pub async fn subscribe_rejected_transactions(&self) -> error::Result<SubscriptionStream<T, H256>> {
+        let subscription = helpers::serialize(&&"rejectedTransactions");
+        let response = self.transport.execute("eth_subscribe", vec![subscription]).await?;
+        let id: String = helpers::decode(response)?;
+        SubscriptionStream::new(self.transport.clone(), SubscriptionId(id))
+    }
+
     /// Create a sync status subscription
     pub async fn subscribe_syncing(&self) -> error::Result<SubscriptionStream<T, SyncState>> {
         let subscription = helpers::serialize(&&"syncing");
