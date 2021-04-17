@@ -46,7 +46,14 @@ enum Client {
     NoProxy(hyper::Client<hyper_tls::HttpsConnector<hyper::client::HttpConnector>>),
 }
 
-#[cfg(not(feature = "http-tls"))]
+#[cfg(feature = "http-rustls")]
+#[derive(Debug, Clone)]
+enum Client {
+    Proxy(hyper::Client<hyper_proxy::ProxyConnector<hyper_rustls::HttpsConnector<hyper::client::HttpConnector>>>),
+    NoProxy(hyper::Client<hyper_rustls::HttpsConnector<hyper::client::HttpConnector>>),
+}
+
+#[cfg(not(any(feature = "http-tls", feature = "http-rustls")))]
 #[derive(Debug, Clone)]
 enum Client {
     Proxy(hyper::Client<hyper_proxy::ProxyConnector<hyper::client::HttpConnector>>),
@@ -76,7 +83,14 @@ impl Http {
     pub fn new(url: &str) -> error::Result<Self> {
         #[cfg(feature = "http-tls")]
         let (proxy_env, connector) = { (env::var("HTTPS_PROXY"), hyper_tls::HttpsConnector::new()) };
-        #[cfg(not(feature = "http-tls"))]
+        #[cfg(feature = "http-rustls")]
+        let (proxy_env, connector) = {
+            (
+                env::var("HTTPS_PROXY"),
+                hyper_rustls::HttpsConnector::with_webpki_roots(),
+            )
+        };
+        #[cfg(not(any(feature = "http-tls", feature = "http-rustls")))]
         let (proxy_env, connector) = { (env::var("HTTP_PROXY"), hyper::client::HttpConnector::new()) };
 
         let client = match proxy_env {
@@ -93,9 +107,7 @@ impl Http {
                 let mut proxy = hyper_proxy::Proxy::new(hyper_proxy::Intercept::All, uri);
 
                 if username != "" {
-                    let credentials =
-                        typed_headers::Credentials::basic(&username, &password).map_err(|_| Error::Internal)?;
-
+                    let credentials = headers::Authorization::basic(&username, &password);
                     proxy.set_authorization(credentials);
                 }
 
@@ -190,8 +202,8 @@ impl BatchTransport for Http {
 
 /// Parse bytes RPC response into `Result`.
 fn single_response<T: Deref<Target = [u8]>>(response: T) -> error::Result<rpc::Value> {
-    let response = serde_json::from_slice(&*response).map_err(|e| Error::InvalidResponse(format!("{:?}", e)))?;
-
+    let response =
+        helpers::to_response_from_slice(&*response).map_err(|e| Error::InvalidResponse(format!("{:?}", e)))?;
     match response {
         rpc::Response::Single(output) => helpers::to_result_from_output(output),
         _ => Err(Error::InvalidResponse("Expected single, got batch.".into())),
@@ -200,8 +212,8 @@ fn single_response<T: Deref<Target = [u8]>>(response: T) -> error::Result<rpc::V
 
 /// Parse bytes RPC batch response into `Result`.
 fn batch_response<T: Deref<Target = [u8]>>(response: T) -> error::Result<Vec<error::Result<rpc::Value>>> {
-    let response = serde_json::from_slice(&*response).map_err(|e| Error::InvalidResponse(format!("{:?}", e)))?;
-
+    let response =
+        helpers::to_response_from_slice(&*response).map_err(|e| Error::InvalidResponse(format!("{:?}", e)))?;
     match response {
         rpc::Response::Batch(outputs) => Ok(outputs.into_iter().map(helpers::to_result_from_output).collect()),
         _ => Err(Error::InvalidResponse("Expected batch, got single.".into())),
