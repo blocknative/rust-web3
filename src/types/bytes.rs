@@ -34,6 +34,12 @@ impl<'a> Deserialize<'a> for Bytes {
     }
 }
 
+impl AsRef<[u8]> for Bytes {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 struct BytesVisitor;
 
 impl<'a> Visitor<'a> for BytesVisitor {
