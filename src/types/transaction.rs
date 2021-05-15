@@ -7,7 +7,7 @@ pub struct BncTransaction {
     /// Details of the pending transaction
     pub value: Transaction,
     /// Details of the peers they are connected to
-    pub peer: BncPeer,
+    pub peer: Option<BncPeer>,
     /// Geth Timestamp
     pub ts: u64, // timestamp
 }
