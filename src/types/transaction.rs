@@ -9,7 +9,7 @@ pub struct BncTransaction {
     /// Details of the peers they are connected to
     pub peer: BncPeer,
     /// Geth Timestamp
-    pub ts: String, // timestamp
+    pub ts: u64, // timestamp
 }
 
 /// Peer details included in Austin's Pending Geth Channel implementation
