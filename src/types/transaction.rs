@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct BncTransaction {
     /// Details of the pending transaction
-    pub value: Transaction,
+    pub value: Option<Transaction>,
     /// Details of the peers they are connected to
     pub peer: Option<BncPeer>,
     /// Geth Timestamp
