@@ -1,6 +1,24 @@
 use crate::types::{Bytes, Index, Log, H160, H2048, H256, U256, U64};
 use serde::{Deserialize, Serialize};
 
+/// Custom Transaction struct that Austin's Pending Geth Channel is providing
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+pub struct BncTransaction {
+    /// Details of the pending transaction
+    pub value: Transaction,
+    /// Details of the peers they are connected to
+    pub peer: BncPeer,
+    /// Geth Timestamp
+    pub ts: String, // timestamp
+}
+
+/// Peer details included in Austin's Pending Geth Channel implementation
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+pub struct BncPeer {
+    pub enode: String,
+    pub id: String,
+}
+
 /// Description of a Transaction, pending or in the chain.
 #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Transaction {

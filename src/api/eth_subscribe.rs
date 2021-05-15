@@ -3,7 +3,7 @@
 use crate::{
     api::Namespace,
     error, helpers,
-    types::{BlockHeader, Filter, Log, SyncState, H256},
+    types::{BlockHeader, BncTransaction, Filter, Log, SyncState, H256},
     DuplexTransport,
 };
 use futures::{
@@ -128,6 +128,18 @@ impl<T: DuplexTransport> EthSubscribe<T> {
     /// Create a pending transactions subscription
     pub async fn subscribe_new_pending_transactions(&self) -> error::Result<SubscriptionStream<T, H256>> {
         let subscription = helpers::serialize(&&"newPendingTransactions");
+        let response = self.transport.execute("eth_subscribe", vec![subscription]).await?;
+        let id: String = helpers::decode(response)?;
+        SubscriptionStream::new(self.transport.clone(), SubscriptionId(id))
+    }
+
+    /// Create a pending transactions subscription where the full transaction details are sent through
+    /// the subscription itself istead of just the transaction hash
+    /// Needs the BlockNative exclusive Geth fork
+    pub async fn subscribe_new_pending_full_transactions(
+        &self,
+    ) -> error::Result<SubscriptionStream<T, BncTransaction>> {
+        let subscription = helpers::serialize(&&"newPendingTransactionsWithPeers");
         let response = self.transport.execute("eth_subscribe", vec![subscription]).await?;
         let id: String = helpers::decode(response)?;
         SubscriptionStream::new(self.transport.clone(), SubscriptionId(id))
