@@ -9,11 +9,9 @@ pub struct BncTransaction {
     /// Details of the peers they are connected to
     pub peer: Option<BncPeer>,
     /// Geth Timestamp
-    #[serde(rename = "Time")]
     pub ts: u64, // timestamp
     /// Geth validation Timestamp
-    #[serde(rename = "P2PTime")]
-    pub p2p_time: u64, // timestamp
+    pub p2pts: u64, // timestamp
 }
 
 /// Peer details included in Austin's Pending Geth Channel implementation
