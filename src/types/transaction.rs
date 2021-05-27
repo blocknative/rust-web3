@@ -11,7 +11,7 @@ pub struct BncTransaction {
     /// Geth Timestamp
     pub ts: u64, // timestamp
     /// Geth validation Timestamp
-    pub p2pts: u64, // timestamp
+    pub p2pts: Option<u64>, // timestamp
 }
 
 /// Peer details included in Austin's Pending Geth Channel implementation
